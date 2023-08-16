@@ -1,0 +1,43 @@
+
+# 本地读取rsid缺失 --------------------------------------------------------------
+
+
+#本地读取
+library(BSgenome.Hsapiens.1000genomes.hs37d5)
+library(SNPlocs.Hsapiens.dbSNP144.GRCh37)
+library(MungeSumstats)
+library(data.table)
+#查找包安装的路径
+.libPaths()
+
+#准备工作：将需要转换的data1.csv文件放入MungeSumstats包安装路径之下的extdata文件夹中
+a <- system.file("extdata", #"eduAttainOkbay.txt",
+                 "GCST90025948_buildGRCh37.csv",
+                 package = "MungeSumstats")
+b <- fread(a)
+
+
+#本地原始数据格式标准化
+library(dplyr)
+#方便复制列名
+head(b)
+c <- b %>%
+  rename( CHR = chromosome, POS = base_pair_location , A1 = ALLELE1, 
+          A2 =ALLELE0 , EAF = A1FREQ, Beta =beta,SE = standard_error,
+          Pval =p_value)
+#删除部分数据列,不删除，无法进行下面的步骤操作
+head(c)
+c <- select(c,-c(INFO,CHISQ_LINREG,P_LINREG,CHISQ_BOLT_LMM_INF, P_BOLT_LMM_INF,
+                 CHISQ_BOLT_LMM))
+
+#转化RSID，这个过程比较慢，11:45跑到11:48
+reformatted <- format_sumstats(
+  c, dbSNP = "144",force_new=TRUE,#
+  ref_genome = "GRCh37",
+  nThread = 4,          # 多线程
+  save_path = "ukb1.tsv.gz", # 输出结果到当前工作路径
+  return_data = FALSE  # TRUE直接返回到R右边的环境
+)
+
+#读取结果
+d <- fread("ukb1.tsv.gz")
