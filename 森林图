@@ -1,0 +1,39 @@
+library(grid)
+library(magrittr)
+library(checkmate)
+library(forestplot)
+library(readxl)
+senlin <- read_excel("E:\\2022\\data.xlsx")#导入数据
+labeltext <- as.matrix(senlin[,1])#将数据框的第一列转换成矩阵
+attach(senlin)#绑定数据框
+windowsFonts(myFont1 = windowsFont("Times New Roman"))#调用Times New Roman字体
+forestplot(labeltext,#图形文本部分
+           mean=or,#图形HR/OR部分
+           lower=or_lci95,#95%CI下限
+           upper=or_uci95,#95%CI上限
+           is.summary=c(F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F),#指定突出显示和非突出显示
+           align=c("c"),#文字对齐方式，l,r,c，分别表示左对齐、右对齐、居中对齐
+           graph.pos=2,#表示图形元素在第二列（也可设置为left 或 right）
+           hral_lines = T,
+           clip=c(0,5.0),
+           zero=1,#设置无效线的横坐标
+           lwd.zero=1,#设置无效线的线条宽度
+           lty.zero=2,#这个好像是设置线条类型，但是我不知道虚线用什么表示
+           title="Forest Plot",
+           xlab="Risk ratio(95%CI)",#设置x轴的标签
+           lwd.xaxis=1,#设置x轴的宽度
+           xticks=c(0,0.5,1,1.5,2,2.5,3,3.5,4,4.5),#设置x轴的刻度
+           lty.ci=1,#设置置信区间的线条类型
+           lwd.ci=1,#设置置信区间的线条宽度
+           ci.vertices=T,#两端是否有竖线
+           ci.vertices.height=0.1,#两端竖线的高度
+           boxsize=0.3,#设置箱体的大小
+           txt_gp = fpTxtGp(ticks = gpar(cex = 1),xlab = gpar(cex = 1), cex = 1),
+           col=fpColors(
+             box = "#DB3124",#箱体的颜色为黑色
+             lines = "black",#置信区间端点线条的颜色
+             summary = "black",#文字的颜色
+             zero = "black",#无效线的颜色
+             text = "black",#文本的颜色
+             axes = "black",#x轴的颜色
+             hrz_lines = "black"))#设置线条的颜色
