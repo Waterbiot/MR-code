@@ -1,0 +1,21 @@
+#循环MR
+DII_Multiple_exp_dat <- extract_instruments(
+  outcomes = c("ukb-b-7323", "ukb-b-7244", "met-d-Total_FA","met-d-SFA","met-d-MUFA","met-d-PUFA","met-d-Total_C","ukb-b-12506","ukb-b-9596","ukb-b-16202","ukb-b-129","ukb-b-3563","ukb-b-18819","ukb-b-15175","ukb-b-4991","ukb-b-5536","ukb-b-14863","ukb-b-13891","ukb-b-19158","ukb-b-17814","ukb-b-391","ukb-d-30860_irnt"),
+  access_token = NULL
+)
+five_multi_exp_data <- rbind(CeIUexp_data,CKDexp_data,Ureaexp_data,UACRexp_data,MAexp_data,eGFRexp_data)
+five_multi_outcome <- extract_outcome_data(snps = five_multi_exp_data$SNP,
+                                outcomes = c("finn-b-E4_OVARDYS","ieu-a-1004","prot-a-528","prot-c-5059_8_3","finn-b-E4_POCS"),
+                                proxies = FALSE,access_token = NULL,maf_threshold = 0.01)
+# harmonise # 
+five_Multiple_har <- harmonise_data(five_multi_exp_data,five_multi_outcome,action = 2)
+# 进行mr分析
+out_POCS_har_excluded_res <- mr(out_POCS_har_excluded)
+# 进行过滤
+out_POCS_har_excluded =steiger_filtering(out_POCS_har_excluded)
+# 进行MRPRESSO
+har_UACR_proa528_mrpresso <- run_mr_presso(dat = har_UACR_proa528)
+# 进行异质性
+out_POCS_har_excluded_heterogeneity <- mr_heterogeneity(out_POCS_har_excluded)
+# 进行水平多效性
+out_POCS_har_excluded_pleiotropy <- mr_pleiotropy_test(out_POCS_har_excluded)
