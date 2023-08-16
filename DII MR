@@ -1,0 +1,50 @@
+library(TwoSampleMR)
+DII_Multiple_exp_dat <- extract_instruments(
+  outcomes = c("ukb-b-7323", "ukb-b-7244", "met-d-Total_FA","met-d-SFA_pct","met-d-MUFA_pct","met-d-PUFA_pct","met-d-Total_C","ukb-a-463","ukb-a-458","ukb-b-16202","ukb-b-7864",
+               "ukb-b-288","ukb-a-135","ukb-a-461","ukb-a-458","ukb-b-6539","ukb-b-18395","ukb-a-496","ukb-a-497",
+               "ukb-b-5237","ukb-b-391","ukb-b-12043"),
+  clump = TRUE,p1 = 1e-5,r2 = 0.01,kb = 5000,access_token = NULL
+)
+DII_Multiple_outcome <- extract_outcome_data(snps = DII_Multiple_exp_dat$SNP,
+                                           outcomes = "finn-b-NAFLD",
+                                           proxies = FALSE,access_token = NULL,maf_threshold = 0.01)
+
+library(TwoSampleMR)
+Dis_DII_Multiple_exp_dat <- extract_instruments(
+  outcomes = c("finn-b-NAFLD"),
+  clump = TRUE,p1 = 1e-5,r2 = 0.01,kb = 5000,access_token = NULL
+)
+Dis_DII_Multiple_outcome <- extract_outcome_data(snps = Dis_DII_Multiple_exp_dat$SNP,
+                                             outcomes = c("ukb-b-7323", "ukb-b-7244", "met-d-Total_FA","met-d-SFA_pct","met-d-MUFA_pct","met-d-PUFA_pct","met-d-Total_C","ukb-a-463","ukb-a-458","ukb-b-16202","ukb-b-7864",
+                                                          "ukb-b-288","ukb-a-135","ukb-a-461","ukb-a-458","ukb-b-6539","ukb-b-18395","ukb-a-496","ukb-a-497",
+                                                          "ukb-b-5237","ukb-b-391","ukb-b-12043"),
+                                             proxies = FALSE,access_token = NULL,maf_threshold = 0.01)
+
+library(TwoSampleMR)
+Iron_exp_dat <- extract_instruments(
+  outcomes = c("ukb-b-18395"),
+  clump = TRUE,p1 = 1e-5,r2 = 0.01,kb = 5000,access_token = NULL
+)
+Iron_outcome <- extract_outcome_data(snps = Iron_exp_dat$SNP,
+                                             outcomes = "finn-b-NAFLD",
+                                             proxies = FALSE,access_token = NULL,maf_threshold = 0.01)
+Iron_har <- harmonise_data(Iron_exp_dat,Iron_outcome,action = 2)
+Iron_har_res <- mr(Iron_har)
+Dis_DII_Multiple_res_mrpresso <- run_mr_presso(Dis_DII_Multiple_har)
+Dis_DII_Multiple_res_heterogeneity <- mr_heterogeneity(Dis_DII_Multiple_har)
+Dis_DII_Multiple_res_heterogeneity_mre <-mr(Dis_DII_Multiple_har,method_list=c('mr_ivw_mre'))
+Dis_DII_Multiple_res_pleiotropy <- mr_pleiotropy_test(Dis_DII_Multiple_har)
+
+# harmonise # 【以这个函数,查看原理】
+DII_Multiple_har <- harmonise_data(DII_Multiple_exp_dat,DII_Multiple_outcome,action = 2)
+# 进行mr分析
+DII_Multiple_res <- mr(DII_Multiple_har)
+# 进行MRPRESSO
+DII_Multiple_res_mrpresso <- run_mr_presso(DII_Multiple_har)
+# 进行异质性
+DII_Multiple_res_heterogeneity <- mr_heterogeneity(DII_Multiple_har)
+DII_Multiple_res_heterogeneity_mre <-mr(DII_Multiple_har,method_list=c('mr_ivw_mre'))
+# 进行水平多效性
+DII_Multiple_res_pleiotropy <- mr_pleiotropy_test(DII_Multiple_har)
+
+#反向MR
