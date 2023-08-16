@@ -1,0 +1,12 @@
+# 中介比例的置信区间计算
+# a就是暴露到中介，b是中介到结局，但是b包含的snp需要删除和a相关的snp
+# 系数就是β，标准误是se
+library(RMediation)
+res <- medci(mu.x=-0.05037453, #A系数
+             mu.y=0.1463038, #B系数
+             se.x=0.01010434, #A系数标准误
+             se.y=0.05628217, #B系数标准误
+             rho=0, 
+             alpha=.05,
+             type="prodclin")
+res
