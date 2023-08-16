@@ -1,0 +1,222 @@
+library(TwoSampleMR)
+  eGFRexp_data <- extract_instruments(outcomes = "ieu-b-4832",clump = TRUE,p1 = 1e-5,r2 = 0.1,kb = 500,access_token = NULL)
+  CKDexp_data <- extract_instruments(outcomes = "finn-b-N14_CHRONKIDNEYDIS",clump = TRUE,p1 = 1e-5,r2 = 0.1,kb = 500,access_token = NULL)
+  MAexp_data <- extract_instruments(outcomes = "ieu-a-1097",clump = TRUE,p1 = 1e-5,r2 = 0.1,kb = 500,access_token = NULL)
+  UACRexp_data <- extract_instruments(outcomes = "ieu-a-1107",clump = TRUE,p1 = 1e-5,r2 = 0.1,kb = 500,access_token = NULL)
+  CeIUexp_data <- extract_instruments(outcomes = "ukb-a-333",clump = TRUE,p1 = 1e-5,r2 = 0.1,kb = 500,access_token = NULL)
+  Ureaexp_data <- extract_instruments(outcomes = "ebi-a-GCST005070",clump = TRUE,p1 = 1e-5,r2 = 0.1,kb = 500,access_token = NULL)
+  
+  #MendelianRandomization::phenoscanner去除多效性
+  out_POCS_confunder2 <- MendelianRandomization::phenoscanner(snpquery = unique(d$V1),catalogue = "GWAS",
+                                                      pvalue = 5e-8,proxies = "None",r2 = 0.8,build = 37)
+  out_POCS2 <-out_POCS_confunder2$results[c("snp","trait")];out_POCS2
+  out_POCS2$trait <- tolower(out_POCS2$trait) #小写转化
+  out_POCS21 <-dplyr::count(out_POCS2,trait,sort = TRUE)
+  Ab2 <- stringr::str_detect(
+    pattern = "A|B|C",
+    string = BAb$trait,
+    negate = TRUE
+  )
+  subset(Bd,grepl("^.*menopause.*$",Bd$trait))
+  Bd3 <- Bd[Bd2,]
+  Bd1 <-dplyr::count(Bd3,trait,sort = TRUE)
+  #eGFR = A,CKD = B,MA = C,UACR = D,CeIU = E,Urea = F
+  #ovarian insufficiency = a,AAM = b,Polycystic ovary syndrome = c,FSH = d,AMHR2 = e
+  #a = finn-b-E4_OVARDYS,b = ieu-a-1004,c = finn-b-E4_POCS,d = prot-a-528,e = prot-c-5059_8_3
+  
+
+  
+OIFout_data <- extract_outcome_data(outcomes = "finn-b-E4_OVARDYS",snps = LDLexp_data$SNP,
+                                  proxies = FALSE,access_token = NULL
+                                 ,maf_threshold = 0.01)
+Ovadisout_data <- extract_outcome_data(outcomes = "finn-b-E4_OVARDYS", clump = TRUE,p1 = 5e-8,r2 = 0.001,kb = 1000,snps = LDLexp_data$SNP,
+                                    proxies = FALSE,access_token = NULL
+                                    ,maf_threshold = 0.01)
+LDLmydata <- harmonise_data(LDLexp_data,LDLout_data,action = 2)
+LDLres <- mr(LDLmydata)
+#敏感性分析
+het <- mr_heterogeneity(mydata)
+mr(mydata,method_list=c('mr_ivw_mre'))
+pleio <- mr_pleiotropy_test(mydata)
+Absingle <- mr_leaveoneout(Ab_har)
+mr_leaveoneout_plot(Absingle)
+#散点图
+mr_scatter_plot(Ab_res,Ab_har)
+#森林图
+Abres_single <- mr_singlesnp(Ab_har)
+mr_forest_plot(Abres_single)
+#漏斗图
+mr_funnel_plot(Abres_single)
+#本地读取文件：肾
+library(TwoSampleMR)
+FSH_dat <- read_exposure_data(
+  filename = "C:\\Users\\25009\\OneDrive\\桌面\\MR\\outcome\\卵巢功能\\GCST90012661_buildGRCh37.tsv\\FSH1.fastGWA",
+  clump = FALSE,
+  sep= ",",
+  snp_col = "SNP",
+  beta_col = "b",
+  se_col = "SE",
+  effect_allele_col ="effect_allele",
+  other_allele_col = "other_allele",
+  eaf_col = "eaf",
+  pval_col = "P"
+)
+
+#or
+FSH <-read.table(
+  "C:\\Users\\25009\\OneDrive\\桌面\\MR\\outcome\\卵巢功能\\GCST90012661_buildGRCh37.tsv\\FSH1.fastGWA",
+    header=T)
+FSH_dat <- format_data(
+  FSH,
+  type="exposure",
+  snp_col = "SNP",
+  beta_col = "b",
+  se_col = "SE",
+  effect_allele_col ="effect_allele",
+  other_allele_col = "other_allele",
+  eaf_col = "eaf",
+  pval_col = "P"
+)
+FSH_dat <- subset(FSH_dat, pval.exposure < 5e-08)
+FSH_dat_clumped <- clump_data(dat =FSH_dat,clump_kb = 1000,clump_r2 = 0.001)
+rm()
+#为结局添加表型信息
+FSH$phenotype <- "FSH"
+#如结局为疾病则需要加以下步骤
+t2d$beta <- log(t2d$OR) # 转换OR值为beta
+t2d$se <-abs(t2d$beta/qnorm(t2d$P_VALUE/2,lower.tail=F))
+
+#读取结局信息
+BUN_FSH_out_dat <- format_data(dat = FSH,
+                               type = "outcome",
+                               snps = BUN_dat_clumped$SNP,
+                               header = TRUE,
+                               phenotype_col = "phenotype",
+                               snp_col = "SNP",
+                               beta_col = "b",
+                               se_col = "SE",
+                               effect_allele_col = "effect_allele",
+                               other_allele_col = "other_allele",
+                               pval_col = "p",
+                               chr_col = "chromosome",
+                               pos_col = "base_pair_location",
+                               )
+
+#染色体位置转化为rsid
+library(dplyr)
+need=dplyr::left_join(AAM_data,hg19_ref,by="chromosome:start") 
+AAM_data$name <- need$name
+
+install.packages(dplyr)
+library(dplyr)
+tes = read.table("test.txt",header=T,check.names=F,sep="\t") 
+match = read.table("snp150_hg19.txt",header=T,check.names=F,sep="\t") 
+need=dplyr::left_join(tes,match,by="chromosome:start") #如果snp150_hg19.txt文件中有对应的RS号，则比对到test.txt文件中，如果没有的话，就变为NA
+write.table(need, file ="clean.txt", sep ="\t", row.names =FALSE, col.names =TRUE, quote =FALSE) #保存文件
+
+#
+library(SNPlocs.Hsapiens.dbSNP144.GRCh37)
+snps<-SNPlocs.Hsapiens.dbSNP144.GRCh37
+for (i in unique(BMI2$Chr)){
+  my_pos<-BMI2$Position[BMI2$Chr==i]
+  chr_snps<-snpsBySeqname(snps, as.character(i))
+  idx<-match(my_pos,pos(chr_snps))
+  rsids<-mcols(chr_snps)$RefSNP_id[idx]
+  BMI2$rsid[BMI2$Chr==i]<-rsids
+  print(paste(as.character(i),"is ok"))
+}
+
+
+
+library(BSgenome.Hsapiens.1000genomes.hs37d5)
+library(SNPlocs.Hsapiens.dbSNP144.GRCh37)
+library(MungeSumstats)
+library(data.table)
+
+A <- system.file("extdata", "AAM.txt",
+                                 package = "MungeSumstats")
+#names(data)[1] <- "dd" # 本来有的SNP列信息，改名为dd
+#head(ovariandysfunction_data)
+reformatted <- format_sumstats(
+  A, 
+  dbSNP = "155",
+  nThread = 10,          # 多线程
+  save_path = "aam.tsv.gz", # 输出结果到当前工作路径
+  return_data = FALSE  # TRUE直接返回到R右边的环境
+)
+# 文件已生成到当前脚本路径
+x <- fread("ovariandysfunction.tsv.gz")
+
+# LDL-C: ieu-b-110
+# HDL-C: ieu-b-109
+# TG: ieu-b-111
+# APOA-I : ieu-b-107
+# APOB: ieu-b-108
+
+#多变量MR
+id_exposure <- c("ieu-b-110","ieu-b-109", "ieu-b-111","ieu-b-107","ieu-b-108")
+id_outcome <- "finn-b-NAFLD"
+exposure_dat <- mv_extract_exposures(id_exposure)
+outcome_dat <- extract_outcome_data(exposure_dat$SNP, id_outcome)
+mvdat <- mv_harmonise_data(exposure_dat,  outcome_dat)
+res <- mv_multiple(mvdat)
+
+
+exp_data <- extract_instruments(outcomes = "b[i]",access_token = NULL)
+repeat{
+  +     exp_data <- extract_instruments(outcomes = 'b[i]',access_token = NULL)
+  +     out_data <- extract_outcome_data(outcomes = 'ieu-b-42', snps = exp_data$SNP, proxies = FALSE,access_token = NULL,maf_threshold = 0.01)
+  +     mydata <- harmonise_data(exp_data,out_data,action = 2)
+  +     res <- mr(mydata)
+  +     i<-i+1
+  +     if (res[3,9]<0.05) {
+    +         df.empty[i+1,1]<-b[i]
+    +     }
+  +     if (i>100) {
+    +         break
+    +     }
+  + }
+
+exp_data <- extract_instruments(outcomes = "b[i]",access_token = NULL)
+
+library(readxl)
+library(TwoSampleMR)
+setwd("C:\\Users\\25009\\OneDrive\\桌面\\MR")
+exceldata <- read_excel("C:\\Users\\25009\\OneDrive\\桌面\\MR\\MR.xlsx")
+df.empty <- data.frame(exp="",out="")[-1,]
+a <- c(exceldata[,1])
+i<-1
+id_exposure <- c("ieu-a-299","ieu-a-300", "ieu-a-302")
+exposure_dat <- mv_extract_exposures(id_exposure)
+repeat{
+  id_outcome <- "a[i]"
+  outcome_dat <- extract_outcome_data(exposure_dat$SNP, id_outcome)
+  mvdat <- mv_harmonise_data(exposure_dat,  outcome_dat)
+  res <- mv_multiple(mvdat)
+  +     i<-i+1
+  +     if (res[["result"]][["pval"]]<0.05) {
+    +         df.empty[i+1,1]<-a[i]
+    +     }
+  +     if (i>100) {
+    +         break
+    +     }
+  }
+#敏感性分析
+har_UACR_proa528_het <- mr_heterogeneity(har_UACR_proa528)
+mr(mydata,method_list=c('mr_ivw_mre'))
+har_UACR_proa528_pleio <- mr_pleiotropy_test(har_UACR_proa528)
+Iron_har_single <- mr_leaveoneout(Iron_har)
+mr_leaveoneout_plot(Iron_har_single)
+har_UACR_proa528_res <-mr(har_UACR_proa528)
+#散点图
+mr_scatter_plot(mr_results = Iron_har_res,dat = Iron_har)
+#森林图
+Iron_har_res_single <- mr_singlesnp(Iron_har)
+mr_forest_plot(Iron_har_res_single)
+#漏斗图
+mr_funnel_plot(Iron_har_res_single)
+#一对一 mr-presso检验
+har_AAM_ieua1107_mrpresso <- mr_presso(data = ,BetaOutcome = "",
+          BetaExposure = "",SdOutcome = "",
+          SdExposure = "",SignifThreshold = 0.05,
+          OUTLIERtest = TRUE,DISTORTIONtest = TRUE,NbDistribution = 1000 )
